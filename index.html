@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title> Умная лампочка </title>
+
+
+	<style>
+	.btn{
+	min-width: 100px;
+	font-size: 12pt;
+	}
+
+	.btn2{
+	min-width: 75px;
+	height: 32px;
+	font-size: 12pt;
+	}
+
+	.lbl{
+	font-size: 14pt;
+	}
+
+	.switch_on
+	{
+	border: 5px inset; 
+	width: 250px;
+	padding: 5px 15px;
+	/*text-align: center;*/
+	}
+	
+	.stateImg{
+                display: none;
+            }
+	
+	.textformat
+	{
+	width: 80px;
+	font-size: 12pt;
+	text-align: center;
+	}
+	
+	.sub {
+  width: 600px;
+ height: 400px;
+  border: 1px solid black;
+	}	
+	
+	</style>
+
+	<script src="chart.js"></script>
+	
+	<script>
+		var xhrSend=new XMLHttpRequest(); // Отправка данных 
+		var xhrRead=new XMLHttpRequest(); // Чтение состояния лампы и термодатчика
+		// JSON структура управления устройством
+		let reg={	
+			"bulbState":"off",	// режим работы лампочки
+			"temp":25,		// температура
+			"tempState":"online"};	// наличие датчика ds18b20
+		
+		function updateImg()
+		{
+			if (reg["bulbState"] == "blink")
+			{
+				document.getElementById('bulb_off').style.display = 'none';
+				document.getElementById('bulb_on').style.display = 'none';
+				document.getElementById('bulb_blink').style.display = 'block';
+			}else
+			if (reg["bulbState"]  == "on")
+			{
+				document.getElementById('bulb_off').style.display = 'none';
+				document.getElementById('bulb_on').style.display = 'block';
+				document.getElementById('bulb_blink').style.display = 'none';
+			}else
+			if (reg["bulbState"]  == "off")
+			{
+				document.getElementById('bulb_off').style.display = 'block';
+				document.getElementById('bulb_on').style.display = 'none';
+				document.getElementById('bulb_blink').style.display = 'none';
+			}
+			else{
+				return;
+			}
+		}
+		
+		function sendData(cmd)
+		{
+			var str;
+			if (cmd == "blink")
+			{
+				reg["bulbState"]="blink";
+			}else
+			if (cmd == "on")
+			{
+				reg["bulbState"]="on";
+			}else
+			if (cmd == "off")
+			{
+				reg["bulbState"]="off";
+			}
+			else{
+				return;
+			}
+			
+			// Преобразования JSON формата в текст для передачи
+			let strSend="/sendData "+JSON.stringify(reg);
+			console.log(strSend);
+			// Отправка данных для изменения состояния лампочки
+			xhrSend.open("POST",strSend,true);
+			xhrSend.onreadystatechange = function()  
+			{  
+				if(xhrSend.readyState == 4 && xhrSend.status==200)  
+				{  
+					var xhrResult2 = xhrSend.responseText;
+					console.log(xhrResult2)
+					reg=JSON.parse(xhrResult2);
+					updateImg();
+					
+				}
+			}
+			xhrSend.send();
+		}
+		
+		function updateTemp()
+		{
+			document.getElementById("tempState").setAttribute("value",  reg["tempState"]);
+			document.getElementById("temp").setAttribute("value",  reg["temp"]);
+		}
+
+	
+		function readData()
+		{
+			let strRead="/readData "+JSON.stringify(reg);
+			console.log(strRead);
+			xhrRead.open("POST",strRead,true);
+			xhrRead.onreadystatechange = function()  
+				{  
+				 if(xhrRead.readyState == 4 && xhrRead.status==200)  
+				 {  
+					var xhrResult = xhrRead.responseText;
+					console.log(xhrResult)
+					reg=JSON.parse(xhrResult);
+					updateImg();
+					updateTemp();
+				 }  
+				}
+			xhrRead.send(); 
+		}
+		setInterval(readData, 1000);
+	
+	</script >
+
+
+</head>
+
+
+<h3>Управление лампочкой</h3>
+
+<span class="stateImg" id="bulb_blink" >
+<img src="bulb_blink.png">
+</span>
+
+<span class="stateImg" id="bulb_off" >
+<img src="bulb_off.png">
+</span>
+
+<span class="stateImg" id="bulb_on" >
+<img src="bulb_on.png">
+</span>
+
+<br>
+
+<p>
+<button class="btn2"  onclick="sendData('on')">on</button>
+<button class="btn2"  onclick="sendData('blink')">blink</button>	
+<button class="btn2"  onclick="sendData('off')">off</button>
+</p>
+
+<br>
+<p>
+Подключение
+<input type="text"   class="textformat" id="tempState" value="offline" readonly="True" />	
+</p>
+<p>
+Температура
+<input type="number" class="textformat" id="temp"   value="25" />
+</p>
+
+
+</div>
+
+<div class="sub">
+    <canvas id="myChart" width="600" height="400" ></canvas>
+</div>
+
+
+    <script>
+	
+	 
+	  var lb=[0];
+	  var dataV=[25];
+	  var n=1;
+	 
+      const ctx = document.getElementById('myChart').getContext('2d');
+      const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+         // labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн'],
+          labels: lb,
+		  datasets: [
+            {
+              label: 'температура',
+              //data: [12, 19, 3, 5, 2, 3],
+              data: dataV,
+			  backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            yAxes: [
+              {
+                ticks: {
+                  beginAtZero: true,
+                },
+              },
+            ],
+          },
+		  elements: {
+                    point:{
+                        radius: 0
+                    }
+					},
+		  
+        },
+      });
+	  
+	  
+	   function adddata()
+	  {
+			//let Vref= document.getElementById("VrefVal").getAttribute("value");
+			var bcmon =parseFloat( document.getElementById("temp").getAttribute("value"));
+			//let bcmon_V= document.getElementById("bcmon_V").getAttribute("value");
+			//document.getElementById("pcmon").setAttribute("value", dacValue["pcmon"]);
+			//document.getElementById("pcmon_V").setAttribute("value", Math.round(dacValue["pcmon"]*ADCvref/4095)+"mV");
+			
+			//document.getElementById("vref").setAttribute("value", dacValue["vref"]);
+			//document.getElementById("vref_V").setAttribute("value", Math.round(dacValue["vref"]*ADCvref/4095)+"mV");
+			//document.getElementById("mon").setAttribute("value", dacValue["mon"]);
+			//document.getElementById("mon_V").setAttribute("value", Math.round(dacValue["mon"]*ADCvref/4095)+"mV");
+		lb.push(n);
+		dataV.push(bcmon);
+		n=n+1;
+		console.log("данные");
+		 myChart.update();
+	  }
+	 
+	setInterval(adddata, 1000);  
+	updateImg();
+    </script>
+
+
+
+</html>
