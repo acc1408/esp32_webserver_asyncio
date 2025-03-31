@@ -202,7 +202,7 @@
 	  var lb=[0];
 	  var dataV=[25];
 	  var n=1;
-	 
+	  let bcmon
       const ctx = document.getElementById('myChart').getContext('2d');
       const myChart = new Chart(ctx, {
         type: 'line',
@@ -242,21 +242,20 @@
 	  
 	   function adddata()
 	  {
-			//let Vref= document.getElementById("VrefVal").getAttribute("value");
-			var bcmon =parseFloat( document.getElementById("temp").getAttribute("value"));
-			//let bcmon_V= document.getElementById("bcmon_V").getAttribute("value");
-			//document.getElementById("pcmon").setAttribute("value", dacValue["pcmon"]);
-			//document.getElementById("pcmon_V").setAttribute("value", Math.round(dacValue["pcmon"]*ADCvref/4095)+"mV");
-			
-			//document.getElementById("vref").setAttribute("value", dacValue["vref"]);
-			//document.getElementById("vref_V").setAttribute("value", Math.round(dacValue["vref"]*ADCvref/4095)+"mV");
-			//document.getElementById("mon").setAttribute("value", dacValue["mon"]);
-			//document.getElementById("mon_V").setAttribute("value", Math.round(dacValue["mon"]*ADCvref/4095)+"mV");
+		//let Vref= document.getElementById("VrefVal").getAttribute("value");
+		var bcmon =parseFloat( document.getElementById("temp").getAttribute("value"));
+		//let bcmon_V= document.getElementById("bcmon_V").getAttribute("value");
+		//document.getElementById("pcmon").setAttribute("value", dacValue["pcmon"]);
+		//document.getElementById("pcmon_V").setAttribute("value", Math.round(dacValue["pcmon"]*ADCvref/4095)+"mV");
+		//document.getElementById("vref").setAttribute("value", dacValue["vref"]);
+		//document.getElementById("vref_V").setAttribute("value", Math.round(dacValue["vref"]*ADCvref/4095)+"mV");
+		//document.getElementById("mon").setAttribute("value", dacValue["mon"]);
+		//document.getElementById("mon_V").setAttribute("value", Math.round(dacValue["mon"]*ADCvref/4095)+"mV");
 		lb.push(n);
 		dataV.push(bcmon);
 		n=n+1;
 		console.log("данные");
-		 myChart.update();
+		myChart.update();
 	  }
 	 
 	setInterval(adddata, 1000);  

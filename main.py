@@ -10,24 +10,22 @@ import deflate, io
 import onewire,ds18x20
 
 
-
-# Create several LEDs
+# настройка выхода светодиода
 led_blink = Pin(2, Pin.OUT)
-but_red   = Pin(14, Pin.IN, Pin.PULL_UP)
-but_green   = Pin(13, Pin.IN, Pin.PULL_UP)
-but_blue   = Pin(12, Pin.IN, Pin.PULL_UP)
-#led_control = Pin(19, Pin.OUT)
+# Настройка выходом кнопок
+but_red   = Pin(14, Pin.IN)
+but_green   = Pin(13, Pin.IN)
+but_blue   = Pin(12, Pin.IN)
+# настройка выхода термодатчика DS18B20
+ow = onewire.OneWire(Pin(16)) # create a OneWire bus on GPIO16
 
-# Initialize variables
-state = "OFF"
-random_value = 0
-
+# Словарь (JSON) структура передачи данных между Сервером и клиентом
 reg={"bulbState":"off",     # режим работы лампочки
      "temp":25,             # температура
      "tempState":"online"}; # наличие датчика ds18b20
 
-
-async def Task1():
+# Задача по управлению светодиодом
+async def Task1_led():
     while True:
         if reg["bulbState"]=="blink":
             print('Task1 - led on')
@@ -47,9 +45,7 @@ async def Task1():
             print('Task1 - led off')
             await asyncio.sleep_ms(500)
             
-            
-            
-
+# Задача по опросу кнопок         
 async def Task2_butCheck():
     while True:
         #print(f"Task2 {but_red.value()} ")
@@ -61,15 +57,9 @@ async def Task2_butCheck():
             reg["bulbState"]="off"
         await asyncio.sleep_ms(100)
 
-"""
-async def Task3(time_sleep_ms):
-    while True:
-        print('Task3')
-        await asyncio.sleep_ms(time_sleep_ms)
-"""
-
-async def Task4():
-    ow = onewire.OneWire(Pin(16)) # create a OneWire bus on GPIO12 
+# Задача по опросу термодатчика  
+async def Task4_temp():
+    #ow = onewire.OneWire(Pin(16)) # create a OneWire bus on GPIO16 
     while True:
         ds = ds18x20.DS18X20(ow)
         roms = ds.scan()
@@ -91,7 +81,7 @@ async def Task4():
         
         
 
-
+# Задача по обработчику потоков для асинхронного веб-сервера
 # Asynchronous functio to handle client's requests
 async def handle_client(reader, writer):
     global state
@@ -228,13 +218,10 @@ async def handle_client(reader, writer):
     # конец отправки файла
     #-------------------------------------------
     
-    
-    
-    
-    #writer.write(response)
     await writer.drain()
     await writer.wait_closed()
-    print('Client Disconnected')        
+    print('Client Disconnected')
+    # конец обработчика потоков Веб-сервера
 
 if __name__ == '__main__':
     print("Run main")
@@ -244,23 +231,28 @@ if __name__ == '__main__':
     ap_if.config(essid="MyPoint", password="12345678")
     #Настройка проверки пароля точки доступа
     #ap_if.config(authmode=network.AUTH_WPA_WPA2_PSK)
-    # Создание сервера
-    
+    # ожидаем включение точки доступа
     while ap_if.active() == False:
       pass
     print('Connection successful')
     print(ap_if.ifconfig())
-    # создаем сокет для прием сообщений
-    # добавление заданий в планировщик
-    asyncio.create_task( Task1() )
-    asyncio.create_task( Task2_butCheck() )
-    """
-    asyncio.create_task( Task2(1500,'Task2 - My text3') )
-    asyncio.create_task( Task3(2000) )
-    """
-    asyncio.create_task( Task4() )
-    # создаем задачу
+    #------------------------------
+    # Настройка веб-сервера
+    # Настраиваем задачу Асинхронного веб-сервера
+    # Передаем имя функции обработчика потоков,
+    # настраиваем на работу с любым IP
+    # на порту 80
     server = asyncio.start_server(handle_client, "0.0.0.0", 80)
-    # помещаем задачу в планировщик
+    #-----------------------------------------------------
+    # Добавляем задачи в планировщик
+    # 1. Передаем задачу обработки веб-сервера
     asyncio.create_task( server )
+    # 2. Передаем задачу управления светодиодом
+    asyncio.create_task( Task1_led() )
+    # 3. Передаем задачу опроса кнопок
+    asyncio.create_task( Task2_butCheck() )
+    # 4. Передаем задачу опроса термодатчика
+    asyncio.create_task( Task4_temp() )
+    #---------------------------------
+    # Запускаем бесконечный цикл планировщика
     asyncio.Loop.run_forever()
