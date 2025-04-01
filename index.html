@@ -199,66 +199,65 @@
     <script>
 	
 	 
-	  var lb=[0];
-	  var dataV=[25];
-	  var n=1;
-	  let bcmon
-      const ctx = document.getElementById('myChart').getContext('2d');
-      const myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-         // labels: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн'],
-          labels: lb,
-		  datasets: [
-            {
-              label: 'температура',
-              //data: [12, 19, 3, 5, 2, 3],
-              data: dataV,
-			  backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 1,
-            },
-          ],
-        },
-        options: {
-          scales: {
-            yAxes: [
-              {
-                ticks: {
-                  beginAtZero: true,
-                },
-              },
-            ],
-          },
-		  elements: {
-                    point:{
-                        radius: 0
-                    }
-					},
-		  
-        },
-      });
+	  let lb=[0];
+	  let dataV=[25];
+	  let n=2;
+	  let bcmon;
+      let ctx = document.getElementById('myChart').getContext('2d');
+      let myChart; 
 	  
-	  
-	   function adddata()
+	  function  init_chart()
 	  {
-		//let Vref= document.getElementById("VrefVal").getAttribute("value");
-		var bcmon =parseFloat( document.getElementById("temp").getAttribute("value"));
-		//let bcmon_V= document.getElementById("bcmon_V").getAttribute("value");
-		//document.getElementById("pcmon").setAttribute("value", dacValue["pcmon"]);
-		//document.getElementById("pcmon_V").setAttribute("value", Math.round(dacValue["pcmon"]*ADCvref/4095)+"mV");
-		//document.getElementById("vref").setAttribute("value", dacValue["vref"]);
-		//document.getElementById("vref_V").setAttribute("value", Math.round(dacValue["vref"]*ADCvref/4095)+"mV");
-		//document.getElementById("mon").setAttribute("value", dacValue["mon"]);
-		//document.getElementById("mon_V").setAttribute("value", Math.round(dacValue["mon"]*ADCvref/4095)+"mV");
+		
+		myChart = new Chart(ctx, {
+			type: 'line',
+			data: {
+	
+			  labels: lb,
+			  datasets: [
+				{
+				  label: 'температура',
+				  data: dataV,
+				  backgroundColor: 'rgba(255, 99, 132, 0.2)',
+				  borderColor: 'rgba(255, 99, 132, 1)',
+				  borderWidth: 1,
+				},
+			  ],
+			},
+			options: {
+			  scales: {
+				yAxes: [
+				  {
+					ticks: {
+					  beginAtZero: true,
+					},
+				  },
+				],
+			  },
+			  elements: {
+						point:{
+							radius: 0
+						}
+						},
+			  
+			},
+		  });
+		setInterval(addData, 1000);
+		myChart.update();
+	  }
+	  
+	   function addData()
+	  {	
+		var temper =parseFloat( document.getElementById("temp").getAttribute("value"));
 		lb.push(n);
-		dataV.push(bcmon);
+		dataV.push(temper);
 		n=n+1;
 		console.log("данные");
 		myChart.update();
+		
 	  }
-	 
-	setInterval(adddata, 1000);  
+	
+	init_chart(); 
 	updateImg();
     </script>
 
